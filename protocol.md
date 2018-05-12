@@ -1,11 +1,11 @@
 ## Command's format: "/" followed by a string
 ## Supported commands
 * __/help__ - prints all supported commands;
-	*Ex: "Bot: 
-             /hello;
-             /day;
-             /time;
-             /random;"
+  *Ex: "Bot: 
+       /hello;
+       /day;
+       /time;
+       /random;"
 * __/day__ - prints current day;
 	*Ex: "Bot: Sunday"
 * __/time__ - prints current time;
