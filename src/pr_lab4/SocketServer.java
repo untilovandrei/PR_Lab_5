@@ -17,6 +17,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  *
@@ -86,7 +88,13 @@ public class SocketServer{
         }else if(recievedCommand.equals("/time")){
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(getCurrentTime());
-        } else{
+        } else if(recievedCommand.indexOf(" ") != -1 && recievedCommand.contains("/random")){
+            recievedArgument = recievedCommand.substring(recievedCommand.indexOf(" ")+1);
+            int integer=getRandomNumber(Integer.valueOf(recievedArgument));
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            System.out.println(integer);
+            oos.writeObject(String.valueOf(integer));
+        }else{
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject("I don't know such a command");
         }
@@ -116,6 +124,10 @@ public class SocketServer{
         Date date = new Date();
         DateFormat format = new SimpleDateFormat("HH:mm");
         return format.format(date);
+    }
+    
+    private static int getRandomNumber(int max){
+        return new Random().nextInt(max + 1);
     }
     
 
