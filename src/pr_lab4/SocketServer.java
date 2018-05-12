@@ -10,8 +10,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,7 +29,9 @@ public class SocketServer{
     private static String recievedCommand;
     private static String recievedArgument;
     
-    static ArrayList<String> commandsList=new ArrayList<>(Arrays.asList("/hello","/time","/flip","/random"));
+    //static ArrayList<String> commandsList=new ArrayList<>(Arrays.asList("/hello","/time","/flip","/random"));
+    static String[] commandsList={"/hello","/day","/time","/random"};
+    static String[] daysOfWeek={ "Monday","Tuesday", "Wednesday", "Thursday", "Friday","Saturday","Sunday"};
     
     public static void main(String args[]) throws IOException, ClassNotFoundException{
         server = new ServerSocket(port);
@@ -71,26 +77,47 @@ public class SocketServer{
             recievedArgument = recievedCommand.substring(recievedCommand.indexOf(" ")+1);
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject("Hello "+recievedArgument+". Can I help you ?");
-        }
-        if(recievedCommand.equals("/help")){
+        } else if(recievedCommand.equals("/help")){
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(convertListToString(commandsList));
-            
+        }else if(recievedCommand.equals("/day")){
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(getCurrentDay());
+        }else if(recievedCommand.equals("/time")){
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(getCurrentTime());
+        } else{
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject("I don't know such a command");
         }
     }
 
     private static void sendNegativeResponse(ObjectOutputStream oos, Socket socket) throws IOException {
         oos = new ObjectOutputStream(socket.getOutputStream());
-        oos.writeObject("command = ' "+recievedCommand+" ' is not supported");
+        oos.writeObject("The ' "+recievedCommand+" ' command is invalid");
     }
 
-    private static String convertListToString(ArrayList<String> commandsList) {
+    private static String convertListToString(String[] commandsList) {
         String allCommands="\n";
         for(String command : commandsList){
             allCommands+=command+";\n";
         }
         return allCommands;
     }
+
+    private static String getCurrentDay() {
+        Calendar calendar = Calendar.getInstance();
+        int day = calendar.get(Calendar.DAY_OF_WEEK); 
+
+        return daysOfWeek[day-1];
+    }
+    
+    private static String getCurrentTime(){
+        Date date = new Date();
+        DateFormat format = new SimpleDateFormat("HH:mm");
+        return format.format(date);
+    }
+    
 
   
 
