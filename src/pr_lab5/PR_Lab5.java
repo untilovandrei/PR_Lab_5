@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pr_lab4;
+package pr_lab5;
 
 /**
  *
  * @author andrei
  */
-public class PR_Lab4 {
+public class PR_Lab5 {
 
     /**
      * @param args the command line arguments

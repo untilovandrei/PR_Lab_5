@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pr_lab4;
+package pr_lab5;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -19,20 +19,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import javafx.util.Pair;
 
 /**
  *
  * @author andrei
  */
-public class SocketServer{
+public class Server{
     
     private static ServerSocket server;
     private static int port = 9876;
     private static String recievedCommand;
     private static String recievedArgument;
     
-    //static ArrayList<String> commandsList=new ArrayList<>(Arrays.asList("/hello","/time","/flip","/random"));
-    static String[] commandsList={"/hello","/day","/time","/random"};
+    static String[] commandsList={"/hello","/day","/time","/random","/exit"};
     static String[] daysOfWeek={ "Monday","Tuesday", "Wednesday", "Thursday", "Friday","Saturday","Sunday"};
     
     public static void main(String args[]) throws IOException, ClassNotFoundException{
@@ -52,6 +52,9 @@ public class SocketServer{
             
             recievedCommand = ois.readObject().toString().trim();
             if(validateCommand(recievedCommand)){
+                if(recievedCommand.equals("/exit")){
+                    break;
+                }
                 processCommand(oos,socket);
             } else {
                 sendNegativeResponse(oos,socket);
@@ -61,10 +64,10 @@ public class SocketServer{
             
             
         }
-//        ois.close();
-//        oos.close();
-//        socket.close();
-//        server.close();
+        ois.close();
+        oos.close();
+        socket.close();
+        server.close();
     }
 
     private static boolean validateCommand(String command) {
@@ -76,30 +79,51 @@ public class SocketServer{
 
     private static void processCommand(ObjectOutputStream oos, Socket socket) throws IOException {
         if(recievedCommand.indexOf(" ") != -1 && recievedCommand.contains("/hello")){
+            
             recievedArgument = recievedCommand.substring(recievedCommand.indexOf(" ")+1);
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject("Hello "+recievedArgument+". Can I help you ?");
+            
         } else if(recievedCommand.equals("/help")){
+            
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(convertListToString(commandsList));
+            
         }else if(recievedCommand.equals("/day")){
+            
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(getCurrentDay());
+            
         }else if(recievedCommand.equals("/time")){
+            
             oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(getCurrentTime());
-        } else if(recievedCommand.indexOf(" ") != -1 && recievedCommand.contains("/random")){
+            
+        }else if(recievedCommand.indexOf(" ") != -1 && recievedCommand.contains("/random")){
+            
             recievedArgument = recievedCommand.substring(recievedCommand.indexOf(" ")+1);
             int integer=getRandomNumber(Integer.valueOf(recievedArgument));
             oos = new ObjectOutputStream(socket.getOutputStream());
             System.out.println(integer);
             oos.writeObject(String.valueOf(integer));
+            
         }else{
+            
+            String response="I don't know such a command";
+            String suggestion=tryToGetSuggestion();
+            if(suggestion!=null){
+                response=suggestion;
+            }
             oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.writeObject("I don't know such a command");
+            oos.writeObject(response);
+                
+            
         }
     }
 
+    
+    
+    
     private static void sendNegativeResponse(ObjectOutputStream oos, Socket socket) throws IOException {
         oos = new ObjectOutputStream(socket.getOutputStream());
         oos.writeObject("The ' "+recievedCommand+" ' command is invalid");
@@ -130,6 +154,64 @@ public class SocketServer{
         return new Random().nextInt(max + 1);
     }
     
+    
+    static int calculate(String x, String y) {
+    int[][] dp = new int[x.length() + 1][y.length() + 1];
+ 
+    for (int i = 0; i <= x.length(); i++) {
+        for (int j = 0; j <= y.length(); j++) {
+            if (i == 0) {
+                dp[i][j] = j;
+            }
+            else if (j == 0) {
+                dp[i][j] = i;
+            }
+            else {
+                dp[i][j] = min(dp[i - 1][j - 1] 
+                 + costOfSubstitution(x.charAt(i - 1), y.charAt(j - 1)), 
+                  dp[i - 1][j] + 1, 
+                  dp[i][j - 1] + 1);
+            }
+        }
+    }
+ 
+    return dp[x.length()][y.length()];
+    }
+    
+    public static int costOfSubstitution(char a, char b) {
+        return a == b ? 0 : 1;
+    }
+    
+    public static int min(int... numbers) {
+        return Arrays.stream(numbers)
+          .min().orElse(Integer.MAX_VALUE);
+    }
+    
+    public static Pair<Integer,Integer> getMinElement(int[] numbers){
+        int minValue = numbers[0];
+        int index = 0;
+        for(int i=1;i<numbers.length;i++){
+          if(numbers[i] < minValue){
+                minValue = numbers[i];
+                index=i;
+              }
+        }
+    return new Pair(index,minValue);
+}
+    
+    private static String tryToGetSuggestion(){
+        int[] distances=new int[commandsList.length];
+            for(int i = 0 ; i < distances.length ; i++){
+                distances[i]=calculate(recievedCommand, commandsList[i]);
+            }
+            
+            int minimumDistance=getMinElement(distances).getValue();
+            String suggestion=commandsList[getMinElement(distances).getKey()];
+            if(minimumDistance<3){
+                return "Did you mean ' "+suggestion+" ' command ?";
+            }
+        return null;
+    }
 
   
 
